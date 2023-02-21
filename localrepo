@@ -1,0 +1,36 @@
+#!/bin/bash
+# Script Variables
+localrepo=$(cat <<EOF > /etc/yum.repos.d/local.repo
+[BaseOS]
+name=BaseOs repo
+baseurl=file:///iso/BaseOS
+enabled=1
+gpgcheck=0
+
+[AppStream]
+name=AppStream repo
+baseurl=file:///iso/AppStream
+enabled=1
+gpgcheck=0
+EOF
+)
+
+MOUNT=/iso
+echo -e " Creating the Mount points"
+sleep 2
+mkdir $MOUNT
+echo -e " Mounting the DVD under $MOUNT"
+mount /dev/cdrom /iso
+if [[ $? -eq 0 ]]; then
+ echo -e " Dvd media is mounted" 
+
+	 echo -e "Creating the Local Repo Configuration"
+$localrepo
+sleep 2
+echo -e "Testing the Repositores availaility"
+yum clean all
+rm -rf /var/cache/yum
+yum repolist
+else
+echo -e "### MEDIA FAILED TO MOUNT , Please attach the DVD on the VM settings from the vCenter.####"
+fi
