@@ -1,0 +1,23 @@
+---
+- name: Change VM UUID on ESXi
+  hosts: localhost
+  gather_facts: false
+
+  vars_prompt:
+    - name: vm_name
+      prompt: "Enter the name of the virtual machine"
+      private: no
+
+  tasks:
+    - name: Power Off VM
+      command: vim-cmd vmsvc/power.off $(vim-cmd vmsvc/getallvms | grep "{{ vm_name }}" | awk '{print $1}')
+
+    - name: Edit VMX File
+      command: "sed -i 's/generate.uuid = \"TRUE\"/generate.uuid = \"FALSE\"/g' /vmfs/volumes/datastore_name/{{ vm_name }}/{{ vm_name }}.vmx"
+      become: true
+
+    - name: Power On VM
+      command: vim-cmd vmsvc/power.on $(vim-cmd vmsvc/getallvms | grep "{{ vm_name }}" | awk '{print $1}')
+
+  vars:
+    datastore_name: "your_datastore_name"
